@@ -1,7 +1,11 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useContext  } from 'react';
 import {Box, Typography, TextField, Button , styled} from '@mui/material'
 import { API } from '../../service/api';
+import { DataContext } from '../../context/DataProvider';
+import {useNavigate} from 'react-router-dom'
+
+
 
 const Component=styled(Box)`
 width:400px;
@@ -56,6 +60,10 @@ flex-direction: column;
     margin-top:20px;
 }
 `
+const loginInitialValues={
+    name:"",
+    password:""
+}
 const signupInitialValues={
     name:"",
     username:"",
@@ -63,22 +71,31 @@ const signupInitialValues={
 }
 
 
-const Login = () => {
+const Login = ({isUserAuthenticated}) => {
+    const imageURL = 'https://www.sesta.it/wp-content/uploads/2021/03/logo-blog-sesta-trasparente.png';
     const [account,toggleAccount]= useState('login');
     const [signup,setSignup]=useState(signupInitialValues);
+    const [login,setLogin]=useState(loginInitialValues)
     const [error,setError]= useState('');
+    const {setAccount}=useContext(DataContext)
+    const navigate=useNavigate();
 
     const toggleSignup= ()=>{
        account==='signup'? toggleAccount('login'): toggleAccount('signup')
     }
 
+
     const onInputChange=(e)=>{
         setSignup({...signup,[e.target.name]:e.target.value})
     }
     const signupUser= async()=>{
+        if (!signup.name || !signup.username || !signup.password) {
+            setError('Please fill in all fields');
+            return;
+        }
         
             let response=await API.userSignup(signup);
-            if(response && response.isSuccess){
+            if(response.isSuccess){
              setError('')
              setSignup(signupInitialValues);
              toggleAccount('login')
@@ -90,19 +107,37 @@ const Login = () => {
       
     }
     
+    const onValueChange= (e)=>{
+        setLogin({...login,[e.target.name]:e.target.value})
+    }
 
-    const imageURL = 'https://www.sesta.it/wp-content/uploads/2021/03/logo-blog-sesta-trasparente.png';
+    const loginUser=async ()=>{
+        let response= await API.userLogin(login);
+        if(response.isSuccess){
+            setError('')
+            
+            sessionStorage.setItem('accessToken',`Bearer ${response.data.accessToken}`);
+            sessionStorage.setItem('refreshToken',`Bearer ${response.data.refreshToken}`);
+            setAccount({username:response.data.username, name:response.data.name})
+            isUserAuthenticated(true);
+            navigate('/');
+
+        }else{
+            setError('Something went wrong try again later')
+        }
+    }
+   
   return (
     <Component>
         <Box>
             <Image src={imageURL} alt="login" />
             {account ==='login' ?
             <Wrapper>
-                <TextField  variant="standard" label="Enter Username "/>
-                <TextField type="password" variant="standard"label="Enter Password" />
+                <TextField  variant="standard" value={login.username} onChange={(e)=>onValueChange(e)} name='username' label="Enter Username "/>
+                <TextField type="password" value={login.password} variant="standard" onChange={(e)=>onValueChange(e)} name='password' label="Enter Password" />
                 
                 {error && <Error>{error}</Error>}
-                <LoginButton variant="contained">Login</LoginButton>
+                <LoginButton onClick={()=>loginUser()} variant="contained">Login</LoginButton>
                 <Text style={{textAlign:'center'}}>OR</Text>
                 <SignupButton onClick={()=>toggleSignup()} >Create an account?</SignupButton>
                 </Wrapper> 
