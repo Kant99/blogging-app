@@ -1,10 +1,13 @@
-import mongoose  from "mongoose";
+import mongoose from 'mongoose';
 
-const tokenSchema = mongoose.Schema({
-    token:{
+const TokenSchema = mongoose.Schema({
+    token: {
         type: String,
-        required:true
+        required: true
     }
-})
-const token=mongoose.model('token',tokenSchema);
+});
+
+
+const token = mongoose.model('token', TokenSchema);
+
 export default token;
