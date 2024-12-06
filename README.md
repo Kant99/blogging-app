@@ -27,5 +27,4 @@ A full-stack blogging website built using the **MERN (MongoDB, Express.js, React
 - **Authentication**:
   - **JSON Web Tokens (JWT)** for secure user authentication.
 
-## Project Structure
 
